@@ -35,7 +35,7 @@ import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
-
+import android.os.Vibrator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +58,8 @@ public class DeviceControlActivity extends Activity {
     private String mDeviceName;
     private String mDeviceAddress;
     private TextView mGattServicesList;
+    private TextView Temperature_data;
+    private TextView Pressure_data;
     private TextView Intent_variable;
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
@@ -135,7 +137,7 @@ public class DeviceControlActivity extends Activity {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
                 Log.d(TAG,"ACTION DATA ELSE IF STATEMENT");
                 //this textbox now runs but only with broadcast update
-                Intent_variable.setText("ACTIVATED ACTION_DATA_AVAILABLE IF STATEMENT");
+               // Intent_variable.setText("ACTIVATED ACTION_DATA_AVAILABLE IF STATEMENT");
             }
         }
     };
@@ -193,13 +195,15 @@ public class DeviceControlActivity extends Activity {
         //mGattServicesList = (ExpandableListView) findViewById(R.id.gatt_services_list);
         //mGattServicesList.setOnChildClickListener(servicesListClickListner);
 
-        mGattServicesList=findViewById(R.id.UV_Index);
-        mGattServicesList.setText("UV Index: ");
+        mGattServicesList=(TextView)findViewById(R.id.UV_Index);
+        Temperature_data=(TextView) findViewById(R.id.Temperature);
+        Pressure_data=(TextView) findViewById(R.id.Pressure);
+       // mGattServicesList.setText("UV Index: ");
         Intent_variable=findViewById(R.id.Intent);
         Intent_variable.setText(" ");
         mConnectionState = (TextView) findViewById(R.id.connection_state);
         mDataField = (TextView) findViewById(R.id.data_value);
-        UV_Index_button=(Button) findViewById(R.id.simpleButton);
+        //UV_Index_button=(Button) findViewById(R.id.simpleButton);
         //UV_Index_button.setOnClickListener(new View.OnClickListener() {
           //                                     @Override
             //                                   public void onClick(View view) {
@@ -275,18 +279,44 @@ public class DeviceControlActivity extends Activity {
     }
 
     private void displayData(String data) {
+        String [] data_array;
+        String pressure_string;
+        int data_time=0;
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        String data_string;//how long until vibration
         Log.d(TAG,"DISPLAYED DATA");
         //this runs
         if (data != null) {
-            mDataField.setText(data);
+            data_array=data.split(",",0);
+
+            mGattServicesList.setText(data_array[0]+" Index");
+
+            Temperature_data.setText(data_array[1]+" C");
+            pressure_string=data_array[2];
+            pressure_string=pressure_string.substring(0, pressure_string.length()-1);
+            Pressure_data.setText(pressure_string+"hPa");
+            data_string=data_array[3];
+            mDataField.setText(data_string);//time left
+            data_time=Integer.parseInt(data_string);
+            boolean test=true;
+            //if value is 100 then you send
+            if(data_time>=75 &&data_time<80)
+            {
+                v.vibrate(400);
+            }
+            if(test)
+            {
+                v.vibrate(400);//vibrate 400 ms
+            }
+            Log.d(TAG,data);
             Log.d(TAG, "DATA PLEASE CHANGE");
-            Intent_variable.setText("Data displayed");
+            //Intent_variable.setText("Data displayed");
         }
         else
         {
             Log.d(TAG,"DATA NOT CHANGING!");
             //getting null data!
-            Intent_variable.setText("Data not displayed");
+            //Intent_variable.setText("Data not displayed");
         }
     }
 
@@ -338,7 +368,7 @@ public class DeviceControlActivity extends Activity {
                 uuid = gattCharacteristic.getUuid().toString();
                 if(uuid.toUpperCase().equals(SampleGattAttributes.NORDIC_UART_TX_CHAR))
                 {
-                    mGattServicesList.setText("READ_TX_CHAR");
+                    //mGattServicesList.setText("READ_TX_CHAR");
                     //mBluetoothLeService.readCharacteristic(gattCharacteristic);
 
                     //mBluetoothLeService.setCharacteristicNotification(gattCharacteristic,true);
